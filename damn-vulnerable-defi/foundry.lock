@@ -1,0 +1,41 @@
+{
+  "lib/v3-core": {
+    "rev": "d8b1c635c275d2a9450bd6a78f3fa2484fef73eb"
+  },
+  "lib/v2-periphery": {
+    "rev": "0335e8f7e1bd1e8d8329fd300aea2ef2f36dd19f"
+  },
+  "lib/safe-smart-account": {
+    "rev": "a2e19c6aa42a45ceec68057f3fa387f169c5b321"
+  },
+  "lib/openzeppelin-contracts-upgradeable": {
+    "rev": "524c8c98922b00741a2bd84d504885324e848d0f"
+  },
+  "lib/v2-core": {
+    "rev": "ee547b17853e71ed4e0101ccfd52e70d5acded58"
+  },
+  "lib/forge-std": {
+    "rev": "3b20d60d14b343ee4f908cb8079495c07f5e8981"
+  },
+  "lib/multicall": {
+    "rev": "5f54bc9778338fc4ccdccaedaebc352a1b258b2a"
+  },
+  "lib/permit2": {
+    "rev": "cc56ad0f3439c502c246fc5cfcc3db92bb8b7219"
+  },
+  "lib/v3-periphery": {
+    "rev": "0682387198a24c7cd63566a2c58398533860a5d1"
+  },
+  "lib/murky": {
+    "rev": "5feccd1253d7da820f7cccccdedf64471025455d"
+  },
+  "lib/openzeppelin-contracts": {
+    "rev": "45f032d1bcf1a88b7bc90154d7eef76c87bf9d45"
+  },
+  "lib/solady": {
+    "rev": "90db92ce173856605d24a554969f2c67cadbc7e9"
+  },
+  "lib/solmate": {
+    "rev": "89365b880c4f3c786bdd453d4b8e8fe410344a69"
+  }
+}
