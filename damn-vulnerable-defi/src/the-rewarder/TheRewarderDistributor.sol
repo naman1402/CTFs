@@ -86,7 +86,7 @@ contract TheRewarderDistributor {
 
         for (uint256 i = 0; i < inputClaims.length; i++) {
             inputClaim = inputClaims[i];
-
+            // ? Using bitmap to check if the claim hasn't been made yet, and to mark the claim as done
             uint256 wordPosition = inputClaim.batchNumber / 256;
             uint256 bitPosition = inputClaim.batchNumber % 256;
 
@@ -110,7 +110,7 @@ contract TheRewarderDistributor {
 
             bytes32 leaf = keccak256(abi.encodePacked(msg.sender, inputClaim.amount));
             bytes32 root = distributions[token].roots[inputClaim.batchNumber];
-
+            // ? For each claim, verify the proof and transfer the tokens to the claimer
             if (!MerkleProof.verify(inputClaim.proof, root, leaf)) revert InvalidProof();
 
             inputTokens[inputClaim.tokenIndex].transfer(msg.sender, inputClaim.amount);

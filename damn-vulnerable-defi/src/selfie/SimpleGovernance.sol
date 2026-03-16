@@ -21,6 +21,7 @@ contract SimpleGovernance is ISimpleGovernance {
     }
 
     function queueAction(address target, uint128 value, bytes calldata data) external returns (uint256 actionId) {
+        // ! governance power is checked when creating an action, not at the time of execution
         if (!_hasEnoughVotes(msg.sender)) {
             revert NotEnoughVotes(msg.sender);
         }
@@ -54,7 +55,7 @@ contract SimpleGovernance is ISimpleGovernance {
         if (!_canBeExecuted(actionId)) {
             revert CannotExecute(actionId);
         }
-
+        // ! time delay is checked and governance power is not checked here.
         GovernanceAction storage actionToExecute = _actions[actionId];
         actionToExecute.executedAt = uint64(block.timestamp);
 

