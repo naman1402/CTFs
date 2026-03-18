@@ -97,7 +97,6 @@ contract CompromisedChallenge is Test {
 
         attacker.sellNFT();
         attacker.sendToRecovery(999 ether);
-
     }
 
     /**

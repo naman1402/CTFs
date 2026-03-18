@@ -92,7 +92,8 @@ contract PuppetChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_puppet() public checkSolvedByPlayer {
-        AttackerContract attacker = new AttackerContract(address(token), address(lendingPool), address(uniswapV1Exchange), recovery);
+        AttackerContract attacker =
+            new AttackerContract(address(token), address(lendingPool), address(uniswapV1Exchange), recovery);
         // Transfer DVT & ETH to attacker contract, so it was perform swap
         token.transfer(address(attacker), PLAYER_INITIAL_TOKEN_BALANCE);
         vm.deal(address(attacker), PLAYER_INITIAL_ETH_BALANCE);

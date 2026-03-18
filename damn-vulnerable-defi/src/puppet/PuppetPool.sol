@@ -85,5 +85,4 @@ contract AttackerContract {
     }
 
     receive() external payable {}
-
 }

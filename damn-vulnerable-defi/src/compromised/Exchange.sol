@@ -101,15 +101,14 @@ contract AttackerContract is IERC721Receiver {
         payable(recovery).transfer(amount);
     }
 
-    function onERC721Received(
-        address operator,
-        address from,
-        uint256 tokenId,
-        bytes calldata data
-    ) external pure override returns (bytes4) {
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data)
+        external
+        pure
+        override
+        returns (bytes4)
+    {
         return IERC721Receiver.onERC721Received.selector;
     }
 
     receive() external payable {}
 }
-
