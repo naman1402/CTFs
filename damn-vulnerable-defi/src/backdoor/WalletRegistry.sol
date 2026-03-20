@@ -11,7 +11,6 @@ import {IProxyCreationCallback} from "safe-smart-account/contracts/proxies/IProx
 import {SafeProxyFactory} from "@safe-global/safe-smart-account/contracts/proxies/SafeProxyFactory.sol";
 import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
 
-
 /**
  * @notice A registry for Safe multisig wallets.
  *         When known beneficiaries deploy and register their wallets, the registry awards tokens to the wallet.

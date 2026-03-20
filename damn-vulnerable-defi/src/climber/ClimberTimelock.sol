@@ -84,9 +84,10 @@ contract ClimberTimelock is ClimberTimelockBase {
         if (targets.length != dataElements.length) {
             revert InvalidDataElementsCount();
         }
-
+        // ? Compute operation id from (targets, values, data, salt)
         bytes32 id = getOperationId(targets, values, dataElements, salt);
-
+        // ! performs the operation and then checks the state of operation
+        // The flow should be schedule -> wait -> execute later
         for (uint8 i = 0; i < targets.length; ++i) {
             targets[i].functionCallWithValue(dataElements[i], values[i]);
         }
