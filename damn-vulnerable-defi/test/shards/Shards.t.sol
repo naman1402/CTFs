@@ -8,7 +8,8 @@ import {
     IShardsNFTMarketplace,
     ShardsFeeVault,
     DamnValuableToken,
-    DamnValuableNFT
+    DamnValuableNFT,
+    Attacker
 } from "../../src/shards/ShardsNFTMarketplace.sol";
 import {DamnValuableStaking} from "../../src/DamnValuableStaking.sol";
 
@@ -113,7 +114,10 @@ contract ShardsChallenge is Test {
     /**
      * CODE YOUR SOLUTION HERE
      */
-    function test_shards() public checkSolvedByPlayer {}
+    function test_shards() public checkSolvedByPlayer {
+        Attacker attacker = new Attacker(marketplace, token, recovery);
+        attacker.attack();
+    }
 
     /**
      * CHECKS SUCCESS CONDITIONS - DO NOT TOUCH

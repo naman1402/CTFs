@@ -141,7 +141,7 @@ contract PuppetV3Challenge is Test {
 
         vm.warp(block.timestamp + 114);
 
-        // After the swap, time has passed to TWAP oracle is updated, 
+        // After the swap, time has passed to TWAP oracle is updated,
         // ? price is manipulated, we can borrow all tokens from the lending pool with very less WETH as the DVT is very cheap in uniswap
         weth.approve(address(lendingPool), type(uint256).max);
         lendingPool.borrow(LENDING_POOL_INITIAL_TOKEN_BALANCE);

