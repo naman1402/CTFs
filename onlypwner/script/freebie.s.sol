@@ -1,7 +1,8 @@
 pragma solidity 0.8.19;
+
 import {Script} from "forge-std/Script.sol";
 
-// https://onlypwner.xyz/challenges/5 
+// https://onlypwner.xyz/challenges/5
 
 interface IVault {
     event Deposit(address indexed user, uint256 amount);

@@ -1,0 +1,3 @@
+[submodule "onlypwner/lib/openzeppelin-contracts"]
+	path = onlypwner/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
